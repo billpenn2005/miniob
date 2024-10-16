@@ -451,6 +451,23 @@ RC Table::create_index(Trx *trx, const FieldMeta *field_meta, const char *index_
   return rc;
 }
 
+RC Table::drop()
+{
+    string meta_file = table_meta_file(base_dir_.c_str(), name());
+    string             data_file = table_data_file(base_dir_.c_str(), name());
+    for(int index_id=0;index_id<table_meta_.index_num();++index_id)
+    {
+        const IndexMeta* ind_meta=table_meta_.index(index_id);
+        const char *index_name=ind_meta->name();
+        string          index_file = table_index_file(base_dir_.c_str(), name(), index_name);
+        ::remove(index_file.c_str());
+    }
+    ::remove(meta_file.c_str());
+    ::remove(data_file.c_str());
+    delete this;
+    return RC::SUCCESS;
+}
+
 RC Table::delete_record(const RID &rid)
 {
   RC     rc = RC::SUCCESS;
